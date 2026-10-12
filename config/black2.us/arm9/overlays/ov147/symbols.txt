@@ -1,0 +1,3 @@
+func_ov147_021f5c60 kind:function(thumb,size=0x10) addr:0x021f5c60
+data_ov147_021f5c70 kind:data(any) addr:0x021f5c70
+data_ov147_021f5da1 kind:data(any) addr:0x021f5da1 ambiguous

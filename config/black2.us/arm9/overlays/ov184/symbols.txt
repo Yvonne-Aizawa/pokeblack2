@@ -1,0 +1,4 @@
+func_ov184_0219f340 kind:function(thumb,size=0x16c) addr:0x0219f340
+data_ov184_0219f4ac kind:data(any) addr:0x0219f4ac
+data_ov184_0219f4bc kind:data(any) addr:0x0219f4bc
+data_ov184_0219f4ec kind:data(any) addr:0x0219f4ec

@@ -70,9 +70,32 @@ You will need to:
    `arm9/baserom_overlays/`, the DSi modules `arm9i/baserom.bin` and
    `arm7i/baserom.bin`, and all 318 NitroFS files under `baserom_files/`
    (272M; mostly NARCs in `a/N/N/N`, plus `.sdat` sound data and the
-   download-play child ROMs in `dl_rom/`).
-2. Generate an initial `pokeblack2.us.bsf` (Banjo Symbol File) using the disassembler
-   of your choice (Ghidra, IDA, mwasmarm) so the asm can reference named labels.
+   download-play child ROMs in `dl_rom/`). Note that overlays 165 and 337 are
+   additionally encrypted with DS Protect (anti-piracy), which `extract.py`
+   does not undo; dsd's extraction does.
+2. ~~Generate symbols~~ **(done, with ds-decomp)**. `config/black2.us/` holds
+   the [ds-decomp](https://github.com/AetiasHax/ds-decomp) (`dsd`) config:
+   `symbols.txt`, `relocs.txt` and `delinks.txt` for ARM9 main, ITCM, DTCM,
+   two DSi autoloads and all 344 overlays (38,122 functions). Use `./dsd.sh`:
+   - `./dsd.sh extract` extracts the ROM to `extract/black2.us/` (gitignored).
+   - `./dsd.sh init` regenerates `config/black2.us/`; it refuses to overwrite
+     an existing config, since that would discard hand-renamed symbols.
+   - `./dsd.sh verify` rebuilds a ROM from the extracted files and checks it
+     against `pokeblack2.us.sha1` (currently passes, byte for byte).
+
+   Requirements:
+   - A `dsd` built against ds-rom with DSi-enhanced support
+     ([AetiasHax/ds-rom#30](https://github.com/AetiasHax/ds-rom/pull/30), not
+     yet released; the released ds-rom 0.8.0 rejects B2 because it has no ARM9
+     footer and uses 16-byte DSi autoload entries). `dsd.sh` runs `dsd-dsi` by
+     default; override with `DSD=...`.
+   - `verify` needs a Nintendo DS ARM7 BIOS dump to hash the encrypted secure
+     area: `BIOS7=...`, default `../bios7.bin`. Never commit it.
+
+   Known gap: 348 call targets (234 in overlay 36, 88 in overlay 168, the
+   rest in overlays 305, 11, 194, 167) are real functions that dsd's analysis
+   missed. They are kept as `size=0x0,unknown` symbols (`func_ov036_..._unk`)
+   and still need proper sizes.
 
 ### 4. Port the inherited makefiles
 
@@ -84,6 +107,9 @@ You will need to:
   rewritten from a real B2 NARC dump.
 - **`rom.rsf`** — NitroMaker Makefile. B2 uses a different SDK header layout; this
   needs verification against the real ARM7/ARM9 binaries.
+- **`pokeblack2.us.bsf`** (`$(TARGET).bsf` in the Makefile) — the banner
+  spec (DS menu title text and icon) consumed by `makebanner`, not a symbol
+  file. Must be written for B2.
 - **`config.mk`** — `SECURE_CRC` for `CPUIE`/`CPVIE` is left as `0x0000` placeholder;
   you must read the secure-area CRC from the actual B2 binary before release builds.
 
@@ -106,6 +132,5 @@ ARM7i (loaded at 0x02E80000, plain). Their compression info lives in "ltd"
 module params inside the ARM9/ARM7 static modules (magic 0xDEC01463).
 
 The scaffold above gives you the universal build helpers and a porting starting
-point. Most of the work — baserom extractor, BSF symbols, ARM7/ARM9/overlay
-split, NitroFS reverse-engineering, individual function matches — is project
-work that nobody has published yet.
+point. Most of the work — the build itself, NitroFS reverse-engineering,
+individual function matches — is project work that nobody has published yet.

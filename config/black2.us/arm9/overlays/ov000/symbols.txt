@@ -1,0 +1,3 @@
+func_ov000_0214f500 kind:function(thumb,size=0x3a8) addr:0x0214f500
+func_ov000_0214f8a8 kind:function(thumb,size=0x8) addr:0x0214f8a8
+func_ov000_0214f8b0 kind:function(thumb,size=0x54) addr:0x0214f8b0

@@ -1,0 +1,41 @@
+func_ov111_021eec80 kind:function(thumb,size=0x56) addr:0x021eec80
+func_ov111_021eecd8 kind:function(thumb,size=0x20) addr:0x021eecd8
+func_ov111_021eecf8 kind:function(thumb,size=0xe) addr:0x021eecf8
+func_ov111_021eed08 kind:function(thumb,size=0xa4) addr:0x021eed08
+func_ov111_021eedac kind:function(thumb,size=0x1c4) addr:0x021eedac
+func_ov111_021eef70 kind:function(thumb,size=0xc) addr:0x021eef70
+func_ov111_021eef7c kind:function(thumb,size=0xc) addr:0x021eef7c
+func_ov111_021eef88 kind:function(thumb,size=0x86) addr:0x021eef88
+func_ov111_021ef010 kind:function(thumb,size=0x64) addr:0x021ef010
+func_ov111_021ef074 kind:function(thumb,size=0x54) addr:0x021ef074
+func_ov111_021ef0c8 kind:function(thumb,size=0x54) addr:0x021ef0c8
+data_ov111_021ef11c kind:data(any) addr:0x021ef11c
+data_ov111_021ef120 kind:data(any) addr:0x021ef120
+data_ov111_021ef124 kind:data(any) addr:0x021ef124
+data_ov111_021ef128 kind:data(any) addr:0x021ef128
+data_ov111_021ef12c kind:data(any) addr:0x021ef12c
+data_ov111_021ef130 kind:data(any) addr:0x021ef130
+data_ov111_021ef134 kind:data(any) addr:0x021ef134
+data_ov111_021ef138 kind:data(any) addr:0x021ef138
+data_ov111_021ef13c kind:data(any) addr:0x021ef13c
+data_ov111_021ef140 kind:data(any) addr:0x021ef140
+data_ov111_021ef144 kind:data(any) addr:0x021ef144
+data_ov111_021ef14c kind:data(any) addr:0x021ef14c
+data_ov111_021ef154 kind:data(any) addr:0x021ef154
+data_ov111_021ef15c kind:data(any) addr:0x021ef15c
+data_ov111_021ef16c kind:data(any) addr:0x021ef16c
+data_ov111_021ef1a0 kind:data(any) addr:0x021ef1a0
+data_ov111_021ef1f4 kind:data(any) addr:0x021ef1f4
+data_ov111_021ef211 kind:data(any) addr:0x021ef211 ambiguous
+data_ov111_021ef231 kind:data(any) addr:0x021ef231 ambiguous
+data_ov111_021ef289 kind:data(any) addr:0x021ef289 ambiguous
+data_ov111_021ef29d kind:data(any) addr:0x021ef29d ambiguous
+data_ov111_021ef2c4 kind:data(any) addr:0x021ef2c4
+data_ov111_021ef2e1 kind:data(any) addr:0x021ef2e1 ambiguous
+data_ov111_021ef335 kind:data(any) addr:0x021ef335 ambiguous
+data_ov111_021ef361 kind:data(any) addr:0x021ef361 ambiguous
+data_ov111_021ef36d kind:data(any) addr:0x021ef36d ambiguous
+data_ov111_021ef379 kind:data(any) addr:0x021ef379 ambiguous
+data_ov111_021ef395 kind:data(any) addr:0x021ef395 ambiguous
+data_ov111_021ef39d kind:data(any) addr:0x021ef39d ambiguous
+data_ov111_021ef3b5 kind:data(any) addr:0x021ef3b5 ambiguous

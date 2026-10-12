@@ -1,0 +1,7 @@
+func_ov051_021e5800 kind:function(thumb,size=0x48) addr:0x021e5800
+func_ov051_021e5848 kind:function(thumb,size=0x20) addr:0x021e5848
+func_ov051_021e5868 kind:function(thumb,size=0x44) addr:0x021e5868
+func_ov051_021e58ac kind:function(thumb,size=0x40) addr:0x021e58ac
+func_ov051_021e58ec kind:function(thumb,size=0x72) addr:0x021e58ec
+func_ov051_021e5960 kind:function(thumb,size=0x22) addr:0x021e5960
+data_ov051_021e5984 kind:data(any) addr:0x021e5984 ambiguous

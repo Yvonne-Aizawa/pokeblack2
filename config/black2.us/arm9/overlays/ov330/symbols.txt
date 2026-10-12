@@ -1,0 +1,8 @@
+func_ov330_0219ce80 kind:function(thumb,size=0x28) addr:0x0219ce80
+func_ov330_0219cea8 kind:function(thumb,size=0x8) addr:0x0219cea8
+func_ov330_0219ceb0 kind:function(thumb,size=0x3e) addr:0x0219ceb0
+func_ov330_0219cef0 kind:function(thumb,size=0x2c) addr:0x0219cef0
+func_ov330_0219cf1c kind:function(thumb,size=0x298) addr:0x0219cf1c
+data_ov330_0219d1b4 kind:data(any) addr:0x0219d1b4 ambiguous
+data_ov330_0219d1e0 kind:data(any) addr:0x0219d1e0
+data_ov330_0219d1fd kind:data(any) addr:0x0219d1fd ambiguous

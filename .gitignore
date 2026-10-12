@@ -38,6 +38,8 @@ cmake-build-debug/
 arm*/baserom.*
 arm9/baserom_overlays/
 /baserom_files/
+# dsd rom extract output (ROM data)
+/extract/
 *.dump
 
 *.lcf.template
