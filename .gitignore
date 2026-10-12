@@ -2,10 +2,18 @@
 *.nds
 
 # Compilers
+# MWCC is proprietary (Metrowerks/Freescale). Acquired from PRET Discord,
+# never commit. The whole-tree `/tools/mwccarm/` pattern excludes the
+# directory and every file/subdir under it.
 tools/mwccarm/**
+/tools/mwccarm/
 
 # SDK
-tools/bin/**
+# Nitro SDK binaries from PRET Discord. Whole-tree exclusion.
+/tools/bin/
+
+# Nitro SDK proprietary source tree (kept locally as reference, never commit).
+/tools/NitroSDK-3_2-060901/
 
 # Build folder
 build/**
@@ -49,3 +57,9 @@ symbols.csv
 *.arc
 files/**/*.c
 *.o
+# Per-user build environment activator
+setvars.sh
+setvars-*.sh
+
+# Nitro SDK proprietary source tree (kept locally as reference, never commit)
+tools/NitroSDK-3_2-060901/
