@@ -64,7 +64,6 @@ int main(int argc, char ** argv)
     }
     FILE * infile = fopen(infname, "r+b");
     if (infile == NULL) {
-        fclose(infile);
         fprintf(stderr, "unable to open file %s for reading\n", infname);
         return 1;
     }
