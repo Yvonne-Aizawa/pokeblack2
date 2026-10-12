@@ -56,15 +56,18 @@ Pret DS decompilation typically organises binaries into:
   loaded at 0x02004000, entry 0x02004800). **The ARM9 static module is
   BLZ-compressed** (`compressed_static_end` = 0x020776A4 in its module params);
   it decompresses from 0x736A4 to 0x9AC00 bytes.
-- `arm9/overlays/overlay_*.s` — overlays, which may also be compressed and need
-  the same decompression step (not yet checked).
+- `arm9/overlays/overlay_*.s` — 344 ARM9 overlays (IDs 0–343). 332 are
+  BLZ-compressed and all 344 have the signed flag set; there are no ARM7
+  overlays. The ARM7 static module is not compressed.
 - `data/` — NitroFS files extracted from the ROM's dataNarcs.
 - `files/`, `graphics/` — extracted assets (`.NARC`, `.NCGR`, `.NCLR`, etc.).
 
 You will need to:
-1. Extend `extract.py` to dump ARM7, every overlay and every NARC from
-   `pokeblack2.nds`. It currently extracts and BLZ-decompresses ARM9 only, to
-   `arm9/baserom.bin` (gitignored): run `./extract.py` from the repo root.
+1. Extend `extract.py` to dump every NARC (and the DSi ARM9i/ARM7i modules)
+   from `pokeblack2.nds`. Run `./extract.py` from the repo root; it already
+   writes (all gitignored) `arm9/baserom.bin` and `arm7/baserom.bin`, the
+   overlay table to `arm9/baserom.ovt.bin`, and every decompressed overlay to
+   `arm9/baserom_overlays/overlay_NNNN.bin`.
 2. Generate an initial `pokeblack2.us.bsf` (Banjo Symbol File) using the disassembler
    of your choice (Ghidra, IDA, mwasmarm) so the asm can reference named labels.
 

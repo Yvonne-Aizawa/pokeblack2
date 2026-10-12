@@ -36,6 +36,7 @@ cmake-build-debug/
 
 # For asmdiff
 arm*/baserom.*
+arm9/baserom_overlays/
 *.dump
 
 *.lcf.template

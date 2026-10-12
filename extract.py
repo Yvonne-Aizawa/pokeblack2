@@ -1,13 +1,20 @@
 #!/usr/bin/env python3
 """Extract binaries from pokeblack2.nds.
 
-Currently extracts the ARM9 static module, undoing its BLZ ("backwards LZ")
-compression so the result matches what is loaded into RAM at 0x02004000.
+Writes, relative to OUTDIR (default: the current directory):
+  arm9/baserom.bin                    ARM9 static module, BLZ-decompressed
+  arm7/baserom.bin                    ARM7 static module
+  arm9/baserom.ovt.bin                ARM9 overlay table, as stored in the ROM
+  arm9/baserom_overlays/overlay_NNNN.bin
+                                      every ARM9 overlay, BLZ-decompressed
 
-Usage: extract.py [ROM] [OUT]
-  ROM defaults to pokeblack2.nds, OUT to arm9/baserom.bin.
+All of these are gitignored. B2 has no ARM7 overlays.
+
+Usage: extract.py [-o OUTDIR] [ROM]   (ROM defaults to pokeblack2.nds)
 """
 
+import argparse
+import os
 import struct
 import sys
 
@@ -50,39 +57,81 @@ def blz_decompress(buf):
     return out
 
 
-def extract_arm9(rom):
-    off, entry, ram, size = struct.unpack_from('<4I', rom, 0x20)
-    arm9 = bytearray(rom[off:off + size])
+def extract_static(rom, header_off, name):
+    off, entry, ram, size = struct.unpack_from('<4I', rom, header_off)
+    module = bytearray(rom[off:off + size])
 
     # The module params block sits right before the nitrocode magic words:
     # autoload_list, autoload_list_end, autoload_start, static_bss_start,
     # static_bss_end, compressed_static_end, sdk_version, magic[2]
-    magic = arm9.find(NITROCODE_MAGIC)
+    magic = module.find(NITROCODE_MAGIC)
     if magic < 0:
-        sys.exit('error: ARM9 module params not found')
+        sys.exit(f'error: {name} module params not found')
     params = magic - 0x1C
-    comp_end = struct.unpack_from('<I', arm9, params + 0x14)[0]
-    sdk = struct.unpack_from('<I', arm9, params + 0x18)[0]
-    print(f'ARM9: ram {ram:#010x} entry {entry:#010x} size {size:#x} '
+    comp_end = struct.unpack_from('<I', module, params + 0x14)[0]
+    sdk = struct.unpack_from('<I', module, params + 0x18)[0]
+    print(f'{name}: ram {ram:#010x} entry {entry:#010x} size {size:#x} '
           f'sdk {sdk:#010x} compressed_static_end {comp_end:#010x}')
 
     if comp_end:
         cut = comp_end - ram
-        arm9 = blz_decompress(arm9[:cut]) + arm9[cut:]
+        module = blz_decompress(module[:cut]) + module[cut:]
         # The loader clears this once it has decompressed the module.
-        struct.pack_into('<I', arm9, params + 0x14, 0)
-    return arm9
+        struct.pack_into('<I', module, params + 0x14, 0)
+    return module
+
+
+def extract_overlays(rom, table_off_field):
+    """Yield (id, overlay table entry, decompressed data) for each overlay.
+
+    Entry layout: id, ram_start, ram_size, bss_size, sinit_start, sinit_end,
+    file_id, flags. flags bits 0-23 are the compressed size and bit 24 marks
+    the overlay as BLZ-compressed.
+    """
+    table_off, table_size = struct.unpack_from('<2I', rom, table_off_field)
+    fat_off = struct.unpack_from('<I', rom, 0x48)[0]
+    for i in range(table_size // 32):
+        entry = struct.unpack_from('<8I', rom, table_off + 32 * i)
+        ov_id, ram, ram_size, _, _, _, file_id, flags = entry
+        start, end = struct.unpack_from('<2I', rom, fat_off + 8 * file_id)
+        data = bytearray(rom[start:end])
+        if flags & (1 << 24):
+            comp_size = flags & 0xFFFFFF
+            data = blz_decompress(data[:comp_size]) + data[comp_size:]
+        if len(data) != ram_size:
+            sys.exit(f'error: overlay {ov_id} is {len(data):#x} bytes, '
+                     f'expected {ram_size:#x}')
+        yield ov_id, entry, data
+
+
+def write(path, data):
+    os.makedirs(os.path.dirname(path), exist_ok=True)
+    with open(path, 'wb') as f:
+        f.write(data)
 
 
 def main():
-    rom_path = sys.argv[1] if len(sys.argv) > 1 else 'pokeblack2.nds'
-    out_path = sys.argv[2] if len(sys.argv) > 2 else 'arm9/baserom.bin'
-    with open(rom_path, 'rb') as f:
+    parser = argparse.ArgumentParser(description='Extract binaries from the B2 ROM.')
+    parser.add_argument('rom', nargs='?', default='pokeblack2.nds')
+    parser.add_argument('-o', '--outdir', default='.')
+    args = parser.parse_args()
+    with open(args.rom, 'rb') as f:
         rom = f.read()
-    arm9 = extract_arm9(rom)
-    with open(out_path, 'wb') as f:
-        f.write(arm9)
-    print(f'wrote {out_path} ({len(arm9):#x} bytes)')
+    out = lambda *p: os.path.join(args.outdir, *p)
+
+    write(out('arm9', 'baserom.bin'), extract_static(rom, 0x20, 'ARM9'))
+    write(out('arm7', 'baserom.bin'), extract_static(rom, 0x30, 'ARM7'))
+
+    table_off, table_size = struct.unpack_from('<2I', rom, 0x50)
+    write(out('arm9', 'baserom.ovt.bin'), rom[table_off:table_off + table_size])
+    count = compressed = 0
+    for ov_id, entry, data in extract_overlays(rom, 0x50):
+        write(out('arm9', 'baserom_overlays', f'overlay_{ov_id:04d}.bin'), data)
+        count += 1
+        compressed += bool(entry[7] & (1 << 24))
+    print(f'ARM9 overlays: {count} ({compressed} compressed)')
+    if struct.unpack_from('<I', rom, 0x5C)[0]:
+        print('warning: ROM has ARM7 overlays, which are not extracted')
 
 
 if __name__ == '__main__':
