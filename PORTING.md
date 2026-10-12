@@ -63,11 +63,14 @@ Pret DS decompilation typically organises binaries into:
 - `files/`, `graphics/` — extracted assets (`.NARC`, `.NCGR`, `.NCLR`, etc.).
 
 You will need to:
-1. Extend `extract.py` to dump every NARC (and the DSi ARM9i/ARM7i modules)
-   from `pokeblack2.nds`. Run `./extract.py` from the repo root; it already
-   writes (all gitignored) `arm9/baserom.bin` and `arm7/baserom.bin`, the
-   overlay table to `arm9/baserom.ovt.bin`, and every decompressed overlay to
-   `arm9/baserom_overlays/overlay_NNNN.bin`.
+1. ~~Write `extract.py`~~ **(done)**. Run `./extract.py` from the repo root
+   (needs Python's `cryptography` package). It writes, all gitignored:
+   `arm9/baserom.bin`, `arm7/baserom.bin`, the overlay table
+   `arm9/baserom.ovt.bin`, every decompressed overlay in
+   `arm9/baserom_overlays/`, the DSi modules `arm9i/baserom.bin` and
+   `arm7i/baserom.bin`, and all 318 NitroFS files under `baserom_files/`
+   (272M; mostly NARCs in `a/N/N/N`, plus `.sdat` sound data and the
+   download-play child ROMs in `dl_rom/`).
 2. Generate an initial `pokeblack2.us.bsf` (Banjo Symbol File) using the disassembler
    of your choice (Ghidra, IDA, mwasmarm) so the asm can reference named labels.
 
@@ -97,7 +100,10 @@ entry in `pret/` (Diamond, Pearl, Platinum, HG/SS, BW1, B2W2, etc.) is non-trivi
 B2/W2 in particular uses a compressed ARM9 module, an expanded NitroFS
 layout, and is a DSi-enhanced title: the `pokeblack2.nds` header has unit code
 0x02 (NDS+DSi) and the ARM9 module params report SDK version 0x0503757C (TWL
-SDK 5.x). The TWL-specific (ARM9i/ARM7i) parts still need investigating.
+SDK 5.x). The DSi-only modules are ARM9i (loaded at 0x02400000, its first
+0x4000 bytes modcrypt-encrypted with the retail key, then BLZ-compressed) and
+ARM7i (loaded at 0x02E80000, plain). Their compression info lives in "ltd"
+module params inside the ARM9/ARM7 static modules (magic 0xDEC01463).
 
 The scaffold above gives you the universal build helpers and a porting starting
 point. Most of the work — baserom extractor, BSF symbols, ARM7/ARM9/overlay
