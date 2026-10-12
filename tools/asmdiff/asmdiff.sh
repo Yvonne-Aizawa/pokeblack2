@@ -4,8 +4,8 @@ MYDIR=$(dirname $0)
 
 mkdir -p ${MYDIR}/.bins
 
-DEFAULT_BASEROM=baserom.nds
-DEFAULT_ARM9BUILDDIR=arm9/build/diamond.us
+DEFAULT_BASEROM=pokeblack2.nds
+DEFAULT_ARM9BUILDDIR=arm9/build/black2.us
 DEFAULT_ARM7BUILDDIR=arm7/build
 DEFAULT_FSDIR=files
 
@@ -31,8 +31,8 @@ usage () {
     echo "Options:"
     echo "  -7            Diff the ARM7 module (default: ARM9)"
     echo "  -m OVERLAY    Diff the indicated overlay module (default: static module)"
-    echo "  -r BASEROM    Use the indicated baserom (default: baserom.nds)"
-    echo "  -d BUILDDIR   Look for compiled binaries in this directory (default: build/diamond.us)"
+    echo "  -r BASEROM    Use the indicated baserom (default: pokeblack2.nds)"
+    echo "  -d BUILDDIR   Look for compiled binaries in this directory (default: arm9/build/black2.us)"
     echo "  -f FILE       Dump the indicated file, and use hexdump instead"
     echo "  -F FSDIR      Filesystem path on the home system"
     echo "  -t            Force THUMB instructions (default: ARM)"
@@ -148,7 +148,14 @@ case "$mode" in
     [[ -f $basefile ]] || {
       dd if="$baserom" of="$basefile" bs=1 skip="$fileoff" count="$size" 2>/dev/null
       [[ $proc == armv5te ]] && {
+        # Diamond/Pearl have a nitrocode footer after ARM9 that points at the
+        # module params; B2/W2 don't, so fall back to searching for the magic.
         _start_ModuleParams=$(getword "$baserom" $((fileoff+size+4)))
+        [[ $(getword "$baserom" $((fileoff+size))) == 3737126433 ]] || {
+          magic=$(LC_ALL=C grep -obUaP '\x21\x06\xc0\xde\xde\xc0\x06\x21' "$basefile" | head -1 | cut -d: -f1)
+          [[ -n $magic ]] || { echo "ARM9 module params not found" >&2; rm -f $basefile; exit 1; }
+          _start_ModuleParams=$((magic-28))
+        }
         compstatend=$(getword "$basefile" $((_start_ModuleParams+20)))
         [[ $compstatend != "0" ]] && {
           $MYDIR/ntruncompbw $basefile $vma $compstatend || { rm -f $basefile; exit 1; }
