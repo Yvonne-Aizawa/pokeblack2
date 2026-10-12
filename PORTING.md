@@ -24,6 +24,11 @@ acquired before the first matching build.
 ## Toolchain (provisioned)
 
 - **MWCC** `tools/mwccarm/` run via `wine`. The build invokes `2.0/sp2p3` and `1.2/sp2p3` per FUNCTION; require an initial `wine tools/mwccarm/2.0/sp2p3/mwccarm.exe` run on a desktop session so it registers `license.dat` against your wineprefix. Headless runs can fail to find the registry on first invocation.
+  - **B2 compiler (first test):** ARM9 `sub_0204D414` (a 20-byte Thumb table
+    dispatch) matches byte-for-byte with `-O4,p -proc arm946e -thumb -enum int
+    -char signed` under `2.0/sp2p3` and every `dsi/*` version tried (1.1, 1.2p1,
+    1.3, 1.6sp2). `1.2/sp2p3` does **not** match (wrong prologue). The exact
+    version still needs a function with more control flow to pin down.
 - **Nitro SDK** at `tools/bin/` (flattened). Run `.exe` tools via wine directly. Cygwin-only unix helpers (`blxchecker`, `nitrorun`, `init2env`, `dis`, `loadrun`) require Cygwin — they will fail on Linux; pret projects reimplement them (you already have `tools/asmdiff/`, `tools/jsonproc/`, `tools/o2narc/` which cover that surface).
 - **devkitARM r68 / gcc 16.1.0 / binutils 2.46.0** installed to user-prefix `~/devkitpro/opt/devkitpro/devkitARM/` (because `/opt/devkitpro/{tools,pacman/var/lib/pacman/sync}` had root-owned subtrees blocking a system install). Activated by sourcing `setvars.sh`. **GCC 16.1.0 is too new for matching**; fine for non-matching builds and for asm pre-processing via `tools/asm_processor/asm_processor.py`.
 
@@ -45,17 +50,21 @@ acquired before the first matching build.
 Pret DS decompilation typically organises binaries into:
 
 - `arm7/` — ARM7TDMI BIOS-call code (touch screen, RTC, mic, sound transfer).
-  Comes from the **ARM7 binary** inside `pokeblack2.nds` (offset ~0x4000 area).
-- `arm9/` — main game logic. Comes from the ARM9 binary (offset ~0x100000 area).
-- `arm9/overlays/overlay_*.s` — **compressed overlay blocks** unique to Gen V
-  (Diamond/Pearl used uncompressed overlays; Black 2/White 2 introduced
-  LZ77-compressed overlays that need a separate decompression step).
+  Comes from the **ARM7 binary** inside `pokeblack2.nds` (ROM offset 0x33A400,
+  loaded at 0x02380000, 0x28F84 bytes).
+- `arm9/` — main game logic. Comes from the ARM9 binary (ROM offset 0x4000,
+  loaded at 0x02004000, entry 0x02004800). **The ARM9 static module is
+  BLZ-compressed** (`compressed_static_end` = 0x020776A4 in its module params);
+  it decompresses from 0x736A4 to 0x9AC00 bytes.
+- `arm9/overlays/overlay_*.s` — overlays, which may also be compressed and need
+  the same decompression step (not yet checked).
 - `data/` — NitroFS files extracted from the ROM's dataNarcs.
 - `files/`, `graphics/` — extracted assets (`.NARC`, `.NCGR`, `.NCLR`, etc.).
 
 You will need to:
-1. Write `extract.py` (or similar) to dump ARM7, ARM9, every overlay, every NARC
-   from `pokeblack2.nds`. See `pokediamond`'s `tools/` and `extract.py` for a model.
+1. Extend `extract.py` to dump ARM7, every overlay and every NARC from
+   `pokeblack2.nds`. It currently extracts and BLZ-decompresses ARM9 only, to
+   `arm9/baserom.bin` (gitignored): run `./extract.py` from the repo root.
 2. Generate an initial `pokeblack2.us.bsf` (Banjo Symbol File) using the disassembler
    of your choice (Ghidra, IDA, mwasmarm) so the asm can reference named labels.
 
@@ -82,9 +91,10 @@ You will need to:
 
 There is **no publicly released Black 2 / White 2 decompilation** yet. Every other
 entry in `pret/` (Diamond, Pearl, Platinum, HG/SS, BW1, B2W2, etc.) is non-trivial;
-B2/W2 in particular introduced compressed ARM9 overlays, an expanded NitroFS
-layout, and DSi-enhanced binaries that aren't present in `pokeblack2.nds` (the
-target ROM here is the cart-only DS build).
+B2/W2 in particular uses a compressed ARM9 module, an expanded NitroFS
+layout, and is a DSi-enhanced title: the `pokeblack2.nds` header has unit code
+0x02 (NDS+DSi) and the ARM9 module params report SDK version 0x0503757C (TWL
+SDK 5.x). The TWL-specific (ARM9i/ARM7i) parts still need investigating.
 
 The scaffold above gives you the universal build helpers and a porting starting
 point. Most of the work — baserom extractor, BSF symbols, ARM7/ARM9/overlay
